@@ -62,6 +62,10 @@ pub struct Exporter {
     /// A list of media files we want to extract from our video as
     /// efficiently as possible.
     extractions: Vec<Extraction>,
+
+    /// The number of seconds to end processing at. If not set,
+    /// process the entire video.
+    end_at: Option<f32>,
 }
 
 impl Exporter {
@@ -71,7 +75,8 @@ impl Exporter {
     pub fn new(video: Video,
                foreign_subtitles: SubtitleFile,
                native_subtitles: Option<SubtitleFile>,
-               label: &str) ->
+               label: &str,
+               end_at: Option<f32>) ->
         Result<Exporter>
     {
         let foreign = LanguageResources::new(foreign_subtitles);
@@ -100,6 +105,7 @@ impl Exporter {
             file_stem: file_stem,
             dir: dir,
             extractions: vec!(),
+            end_at: end_at,
         })
     }
 
@@ -127,6 +133,11 @@ impl Exporter {
     /// Get data related to the native language.
     pub fn native(&self) -> Option<&LanguageResources> {
         self.native.as_ref()
+    }
+
+    /// Get the number of seconds to end processing at.
+    pub fn end_at(&self) -> Option<f32> {
+        self.end_at
     }
 
     /// Align our two sets of subtitles.

@@ -54,6 +54,7 @@ impl ToJson for ExportInfo {
 
 /// Export the video and subtitles as a web page in "reviewable" format.
 pub fn export_review(exporter: &mut Exporter) -> Result<()> {
+    let end_at = exporter.end_at();
     let foreign_lang = exporter.foreign().language;
     // Start preparing information we'll pass to our HTML template.
     let mut bindings = ExportInfo {
@@ -72,6 +73,14 @@ pub fn export_review(exporter: &mut Exporter) -> Result<()> {
             foreign.as_ref().map(|s| s.period),
             native.as_ref().map(|s| s.period),
         ).expect("subtitle pair must not be empty").grow(0.5, 0.5);
+
+        match end_at {
+            Some(seconds) if period.begin() > seconds => {
+                println!("Ending at {:?} seconds of video.", seconds);
+                break;
+            }
+            _ => {}
+        }
 
         let image_path = exporter.schedule_image_export(period.midpoint());
         let audio_path = exporter.schedule_audio_export(foreign_lang, period);

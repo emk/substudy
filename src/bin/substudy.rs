@@ -21,9 +21,9 @@ Subtitle processing tools for students of foreign languages
 
 Usage: substudy clean <subs>
        substudy combine <foreign-subs> <native-subs>
-       substudy export csv <video> <foreign-subs> [<native-subs>]
-       substudy export review <video> <foreign-subs> [<native-subs>]
-       substudy export tracks <video> <foreign-subs>
+       substudy export csv [--end-at=<secs>] <video> <foreign-subs> [<native-subs>]
+       substudy export review [--end-at=<secs>] <video> <foreign-subs> [<native-subs>]
+       substudy export tracks [--end-at=<secs>] <video> <foreign-subs>
        substudy list tracks <video>
        substudy --help
        substudy --version
@@ -45,6 +45,7 @@ struct Args {
     arg_foreign_subs: String,
     arg_native_subs: Option<String>,
     arg_video: String,
+    flag_end_at: Option<f32>,
     flag_version: bool,
 }
 
@@ -73,7 +74,8 @@ fn run(args: &Args) -> Result<()> {
         {
             cmd_export(export_type(args), &Path::new(video_path),
                        &Path::new(foreign_path),
-                       native_path.as_ref().map(|p| Path::new(p)))
+                       native_path.as_ref().map(|p| Path::new(p)),
+                       args.flag_end_at)
         }
         Args{cmd_tracks: true, arg_video: ref path, ..} =>
             cmd_tracks(&Path::new(path)),
@@ -111,7 +113,8 @@ fn cmd_tracks(path: &Path) -> Result<()> {
 }
 
 fn cmd_export(kind: &str, video_path: &Path, foreign_sub_path: &Path,
-              native_sub_path: Option<&Path>) ->
+              native_sub_path: Option<&Path>,
+              end_at: Option<f32>) ->
     Result<()>
 {
     // Load our input files.
@@ -123,7 +126,7 @@ fn cmd_export(kind: &str, video_path: &Path, foreign_sub_path: &Path,
     };
 
     let mut exporter =
-        try!(export::Exporter::new(video, foreign_subs, native_subs, kind));
+        try!(export::Exporter::new(video, foreign_subs, native_subs, kind, end_at));
     match kind {
         "csv" => try!(export::export_csv(&mut exporter)),
         "review" => try!(export::export_review(&mut exporter)),

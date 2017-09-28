@@ -3,7 +3,7 @@ name = "substudy"
 version = "0.4.2"
 dependencies = [
  "cld2 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)",
- "cli_test_dir 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cli_test_dir 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "csv 0.14.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "difference 0.4.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "docopt 0.6.86 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -83,7 +83,7 @@ dependencies = [
 
 [[package]]
 name = "cli_test_dir"
-version = "0.1.0"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
@@ -449,7 +449,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum cfg-if 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "de1e760d7b6535af4241fca8bd8adf68e2e7edacc6b29f5d399050c5e48cf88c"
 "checksum cld2 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "5820703dfcb79253d9ccce414db29d34fff0a85d62a1914921f7468026567ee5"
 "checksum cld2-sys 1.0.1 (registry+https://github.com/rust-lang/crates.io-index)" = "01081c29c4c4908bbf477dc43df0b5b648dfa09f7e3bf97d085dc373b4351339"
-"checksum cli_test_dir 0.1.0 (registry+https://github.com/rust-lang/crates.io-index)" = "fc5c0e759bbcea5820490a287e4fee5e259bc4308478fd890552bee2d61b4455"
+"checksum cli_test_dir 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7d007f296318f655a55cd63548d04729bf3d482fe779109c2d82716b305429db"
 "checksum cmake 0.1.21 (registry+https://github.com/rust-lang/crates.io-index)" = "e1acc68a3f714627af38f9f5d09706a28584ba60dfe2cca68f40bf779f941b25"
 "checksum csv 0.14.7 (registry+https://github.com/rust-lang/crates.io-index)" = "266c1815d7ca63a5bd86284043faf91e8c95e943e55ce05dc0ae08e952de18bc"
 "checksum dbghelp-sys 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)" = "97590ba53bcb8ac28279161ca943a924d1fd4a8fb3fa63302591647c4fc5b850"

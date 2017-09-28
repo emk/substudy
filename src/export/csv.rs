@@ -44,6 +44,7 @@ struct AnkiNote {
 /// Export the video and subtitles as a CSV file with accompanying media
 /// files, for import into Anki.
 pub fn export_csv(exporter: &mut Exporter) -> Result<()> {
+    let end_at = exporter.end_at();
     let foreign_lang = exporter.foreign().language;
     let prefix = episode_prefix(exporter.file_stem());
 
@@ -72,6 +73,14 @@ pub fn export_csv(exporter: &mut Exporter) -> Result<()> {
         let native = ctx.map(|&(_, ref n)| n).flatten();
 
         if let Some(curr) = foreign.curr {
+            match end_at {
+                Some(seconds) if curr.period.begin() > seconds => {
+                    println!("Ending at {:?} seconds of video.", seconds);
+                    break;
+                }
+                _ => {}
+            }
+
             let period = curr.period.grow(1.5, 1.5);
 
             let image_path = exporter.schedule_image_export(period.midpoint());

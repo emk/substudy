@@ -32,7 +32,7 @@ regex = "0.1.41"
 uchardet = "2.0.0"
 
 [dev-dependencies]
-cli_test_dir = "0.1"
+cli_test_dir = "0.1.2"
 difference = "0.4.1"
 
 [[bin]]

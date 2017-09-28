@@ -85,11 +85,20 @@ pub fn export_tracks(exporter: &mut Exporter) -> Result<()> {
     // UTF-8).
     //
     // TODO: Genre, artist, album, track title, track number.
+    let end_at = exporter.end_at();
     let foreign_lang = exporter.foreign().language;
     let mut playlist = Cursor::new(vec!());
     for (i, conv) in convs.iter().enumerate() {
         debug!("Conv: {:7.1} -> {:7.1} for {:7.1}",
                conv.period.begin(), conv.period.end(), conv.period.duration());
+
+        match end_at {
+            Some(seconds) if conv.period.begin() > seconds => {
+                println!("Ending at {:?} seconds of video.", seconds);
+                break;
+            }
+            _ => {}
+        }
 
         // Build our track name.
         let name = format!("{} {}", seconds_to_hhmmss(conv.period.begin()),
