@@ -102,4 +102,4 @@ mod util;
 pub use common_failures::{Error, Result};
 pub use self::idx::{Index, Palette};
 pub use self::probe::{is_idx_file, is_sub_file};
-pub use self::sub::{Coordinates, Subtitle, Subtitles, subtitles};
+pub use self::sub::{Coordinates, Subtitle, Subtitles, SubtitlesFromChunks, subtitles};

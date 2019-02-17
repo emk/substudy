@@ -3,8 +3,9 @@
 //! This is the container format used at the top-level of a `*.sub` file.
 
 use common_failures::prelude::*;
-use nom::IResult;
+use nom::{IResult, Needed};
 use std::fmt;
+use std::ops::Deref;
 
 use super::clock::{Clock, clock_and_ext};
 use super::pes;
@@ -82,10 +83,67 @@ named!(pub pes_packet<PesPacket>,
     )
 );
 
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct NeededOpt(Option<usize>);
+
+impl From<Needed> for NeededOpt {
+    fn from(needed: Needed) -> Self {
+        match needed {
+            Needed::Size(needed) => NeededOpt(Some(needed)),
+            Needed::Unknown => NeededOpt(None),
+        }
+    }
+}
+
+impl From<Option<usize>> for NeededOpt {
+    fn from(needed: Option<usize>) -> Self {
+        NeededOpt(needed)
+    }
+}
+
+impl From<usize> for NeededOpt {
+    fn from(needed: usize) -> Self {
+        NeededOpt(Some(needed))
+    }
+}
+
+impl From<NeededOpt> for Option<usize> {
+    fn from(needed: NeededOpt) -> Self {
+        needed.0
+    }
+}
+
+impl Deref for NeededOpt {
+    type Target = Option<usize>;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+#[derive(Debug, Fail)]
+pub enum PesPacketError {
+    #[fail(display = "Incomplete PES packet: offset {}, needed {:?}", offset, needed)]
+    Incomplete {
+        offset: usize,
+        needed: NeededOpt,
+    },
+    #[fail(display = "PES packet needle not found: offset {}, remaining {}", offset, remaining)]
+    NeedleNotFound {
+        offset: usize,
+        remaining: usize,
+    },
+}
+
+/// The length for the needle introducing a Program Stream packet.
+pub const PES_PACKET_NEEDLE_LEN: usize = 4;
+
 /// An iterator over all the PES packets in an MPEG-2 Program Stream.
 pub struct PesPackets<'a> {
     /// The remaining input to parse.
     remaining: &'a [u8],
+    /// The offset of the remaining input in the initial slice
+    pub offset: usize,
 }
 
 impl<'a> Iterator for PesPackets<'a> {
@@ -100,10 +158,12 @@ impl<'a> Iterator for PesPackets<'a> {
 
             if let Some(start) = start {
                 // We found the start, so try to parse it.
+                self.offset += start;
                 self.remaining = &self.remaining[start..];
                 match pes_packet(self.remaining) {
                     // We found a packet!
                     IResult::Done(remaining, packet) => {
+                        self.offset += self.remaining.len() - remaining.len();
                         self.remaining = remaining;
                         trace!("Decoded packet {:?}", &packet);
                         return Some(Ok(packet));
@@ -112,21 +172,37 @@ impl<'a> Iterator for PesPackets<'a> {
                     // data.
                     IResult::Incomplete(needed) => {
                         self.remaining = &[];
-                        warn!("Incomplete packet, need: {:?}", needed);
-                        return Some(Err(format_err!("Incomplete PES packet")));
+                        let err = PesPacketError::Incomplete {
+                            offset: self.offset,
+                            needed: needed.into(),
+                        };
+                        warn!("{:?}", err);
+                        return Some(Err(Error::from(err)));
                     }
                     // We got something that looked like a packet but
                     // wasn't parseable.  Log it and keep trying.
                     IResult::Error(err) => {
+                        self.offset += needle.len();
                         self.remaining = &self.remaining[needle.len()..];
                         debug!("Skipping packet {:?}", &err);
                     }
                 }
             } else {
                 // We didn't find the start of a packet.
+                let remaining_len = self.remaining.len();
                 self.remaining = &[];
-                trace!("Reached end of data");
-                return None;
+
+                if remaining_len > 0 {
+                    let err = PesPacketError::NeedleNotFound {
+                        offset: self.offset,
+                        remaining: remaining_len,
+                    };
+                    debug!("{:?}", err);
+                    return Some(Err(Error::from(err)));
+                } else {
+                    trace!("Reached end of data");
+                    return None;
+                }
             }
         }
     }
@@ -135,5 +211,8 @@ impl<'a> Iterator for PesPackets<'a> {
 /// Iterate over all the PES packets in an MPEG-2 Program Stream (or at
 /// least those which contain subtitles).
 pub fn pes_packets(input: &[u8]) -> PesPackets {
-    PesPackets { remaining: input }
+    PesPackets {
+        remaining: input,
+        offset: 0,
+    }
 }
