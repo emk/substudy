@@ -282,6 +282,10 @@ named!(packet_helper<Packet>,
     )
 );
 
+/// Minimum needed length to identify a new PES Packet header
+/// and get its length.
+pub const PES_PACKET_HEADER_MIN_LEN: usize = 4 + 2;
+
 named!(pub packet<Packet>,
     do_parse!(
         tag!(&[0x00, 0x00, 0x01, 0xbd]) >>

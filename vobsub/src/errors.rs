@@ -5,15 +5,19 @@ use nom::IResult;
 use std::default::Default;
 use std::fmt;
 
+use mpeg2::ps::NeededOpt;
+
 /// A type representing errors that are specific to `vobsub`. Note that we may
 /// normally return `Error`, not `VobsubError`, which allows to return other
 /// kinds of errors from third-party libraries.
-#[derive(Debug, Fail)]
+#[derive(Debug, Fail, PartialEq)]
 pub enum VobsubError {
 
     /// Our input data ended sooner than we expected.
-    #[fail(display = "Input ended unexpectedly")]
-    IncompleteInput,
+    #[fail(display = "Input ended unexpectedly. {:?} bytes needed", needed)]
+    IncompleteInput {
+        needed: NeededOpt,
+    },
 
     /// We were unable to find a required key in an `*.idx` file.
     #[fail(display = "Could not find required key '{}'", key)]
@@ -54,7 +58,11 @@ impl<I: Default+Eq, O, E: fmt::Debug> IResultExt<I, O, E> for IResult<I, O, E> {
                     Err(VobsubError::UnexpectedInput.into())
                 }
             }
-            IResult::Incomplete(_) => Err(VobsubError::IncompleteInput.into()),
+            IResult::Incomplete(needed) => {
+                Err(VobsubError::IncompleteInput{
+                    needed: needed.into(),
+                }.into())
+            }
             IResult::Error(err) => {
                 Err(VobsubError::Parse {
                     message: format!("{:?}", err),
