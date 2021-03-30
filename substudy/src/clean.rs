@@ -19,7 +19,8 @@ fn clean_line(line: &str) -> String {
     //     SPEAKER:
     //     ( sound effect )
     //     ♪ music ♪
-    let clutter = Regex::new(r"(\([^)]*\)|♪[^♪]*♪|[A-Z]{2,} ?:)").unwrap();
+    //     [Music]
+    let clutter = Regex::new(r"(\([^)]*\)|\[[^\]]*\]|♪[^♪]*♪|[A-Z]{2,} ?:)").unwrap();
 
     // Used to compress and normalize consecutive whitespace.
     let whitespace = Regex::new(r"\s+").unwrap();
@@ -92,6 +93,10 @@ They've arrived.
 21
 00:01:12,839 --> 00:01:13,840
 ♪ ♪
+
+22
+00:01:14,432 --> 00:01:16,637
+[Music]
 
 18
 00:01:02,328 --> 00:01:03,162
